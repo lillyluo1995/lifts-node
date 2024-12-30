@@ -1,0 +1,61 @@
+scalar Date
+
+enum TargetType {
+    PUSH
+    PULL
+    LEGS
+}
+
+type MoveMetadata {
+    id: ID!
+    name: String!
+    target_muscle: String!
+}
+
+type Lift {
+    id: ID!
+    date: Date!
+    target_type: TargetType!
+}
+
+type Move {
+    id: ID!
+    move_metadata_id: ID!
+    lift_id: ID!
+}
+
+type Set {
+    id: ID!
+    move_id: ID!
+    lift_id: ID!
+    set_increment: Int!
+}
+
+type Rep {
+    id: ID!
+    set_id: ID!
+    num_reps: Int! 
+    weight: Int!
+    Unilateral: Boolean!
+}
+
+type Query {
+    moves: [MoveMetadata!]! 
+}
+
+type CreateMoveMetadataResponse {
+    code: Int!
+    success: Boolean!
+    message: String!
+    moveMetadata: MoveMetadata
+}
+
+input CreateMoveMetadataInput {
+    name: String!
+    target_muscle: String!
+}
+
+type Mutation {
+    "Create a new move"
+    createMoveMetadata(input: CreateMoveMetadataInput!): CreateMoveMetadataResponse!
+}
