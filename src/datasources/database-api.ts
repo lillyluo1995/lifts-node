@@ -1,5 +1,5 @@
 import { Pool } from 'pg';
-import { MoveMetadata } from "../types";
+import { CreateMoveMetadataResponse, CreateMoveMetadataInput, MoveMetadata, TargetType, Lift } from "../types";
 
 export class DatabaseAPI {
     private pool: Pool
@@ -16,7 +16,41 @@ export class DatabaseAPI {
     }
 
     async getMoveMetadata(): Promise<MoveMetadata[]> {
-        const results = await this.pool.query('SELECT * FROM MOVE_METADATA')
+        const results = await this.pool.query<MoveMetadata>('SELECT * FROM MOVE_METADATA')
         return results.rows;
+    }
+
+    async getMoveUsingId(id: number): Promise<MoveMetadata | null> {
+        const results = await this.pool.query<MoveMetadata>(`SELECT * FROM MOVE_METADATA WHERE ID = ${id}`)
+        if (results.rowCount == 0) {
+            return null
+        }
+
+        return results.rows[0]
+    }
+
+    async getMoveUsingName(name: string): Promise<MoveMetadata | null> {
+        const results = await this.pool.query<MoveMetadata>(`SELECT * FROM MOVE_METADATA WHERE NAME = '${name}'`)
+        if (results.rowCount == 0) {
+            return null
+        }
+        return results.rows[0]
+    }
+
+    async createMove(metadata: CreateMoveMetadataInput): Promise<MoveMetadata> {
+        const { name, target_muscle } = metadata;
+        const response = await this.pool.query<MoveMetadata>(`INSERT INTO MOVE_METADATA (name, target_muscle) values ($1, $2) RETURNING *`, [name, target_muscle]);
+        return response.rows[0]
+    }
+
+    async createLift(metadata: { date: Date, target_type: TargetType}): Promise<Lift> {
+        const { date, target_type } = metadata 
+        const response = await this.pool.query<Lift>(`INSERT INTO LIFT (date, target_type) values ($1, $2) RETURNING *`, [date, target_type]);
+        return response.rows[0]
+    }
+
+    async getLifts(): Promise<Lift[]> {
+        const response = await this.pool.query<Lift>(`SELECT * FROM LIFT`)
+        return response.rows
     }
 }

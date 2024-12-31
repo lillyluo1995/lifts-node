@@ -1,5 +1,4 @@
 import { Resolvers} from "./types";
-import { validateFullAmenities } from "./helpers";
 
 export const resolvers: Resolvers = {
     Query: {
@@ -9,9 +8,17 @@ export const resolvers: Resolvers = {
         // 3. contextValue: object shared across ALL resolvers (like auth, database connection)
         // 4. info: info about the operations' execution state. not used often  
 
-        moves: (_, __, { dataSources }) => {
+        getMoveMetadata: (_, __, { dataSources }) => {
             return dataSources.db.getMoveMetadata()
         }, // matches the structure of the schema type Query in schema.graphql 
+        
+        getMoveMetadataUsingId: (_, { id }, { dataSources}) => {
+            return dataSources.db.getMoveUsingId(id)
+        },
+
+        getLifts: (_, __, { dataSources}) => {
+            return dataSources.db.getLifts()
+        }
     },
     // Listing is from the type definition of Listing 
     // It comes from export type Listing
@@ -21,23 +28,57 @@ export const resolvers: Resolvers = {
     //         return validateFullAmenities(amenities) ? amenities : dataSources.listingAPI.getAmenities(id)
     //     }
     // },
-    // Mutation: {
-    //     createMoveMetadata: async (_, { input }, {dataSources}) => {
-    //         try {
-    //         const response = await dataSources.db.createListing(input)
-    //         return {
-    //             code: 200,
-    //             success: true,
-    //             message: "Move successfully created",
-    //             listing: response,
-    //         }
-    //     } catch (error) {
-    //         return {
-    //             code: 500,
-    //             success: false,
-    //             message: JSON.stringify(error.extensions.response.body),
-    //             listing: null
-    //         }
-    //     }
-    //     }
+    Mutation: {
+        createMoveMetadata: async (_, { input }, {dataSources}) => {
+            try {
+            const existingMove = await dataSources.db.getMoveUsingName(input.name)
+            if (existingMove) {
+                return {
+                    code: 200,
+                    success: true,
+                    message: `Move already exists`,
+                    moveMetadata: existingMove
+                }
+            }    
+
+            const response = await dataSources.db.createMove(input)
+            return {
+                code: 200,
+                success: true,
+                message: "Move successfully created",
+                moveMetadata: response,
+            }
+        } catch (error) {
+            return {
+                code: 500,
+                success: false,
+                message: JSON.stringify(error),
+                moveMetadata: null
+            }
+        }
+        },
+        createLift: async(_, { input }, {dataSources}) => {
+            let { date, target_type } = input 
+            if (!date) {
+                date = new Date()
+            }
+
+            try {
+                const lift = await dataSources.db.createLift({date, target_type})
+                return {
+                    success: true,
+                    code: 200,
+                    message: "Lift successfully created",
+                    lift
+                }
+            } catch (error) {
+                return { 
+                    success: false,
+                    code: 500,
+                    message: `Failed to create lift ${error.message}`,
+                    lift: null
+                }
+            }
+        }
     }
+}

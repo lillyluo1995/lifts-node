@@ -40,10 +40,18 @@ type Rep {
 }
 
 type Query {
-    moves: [MoveMetadata!]! 
+    getMoveMetadata: [MoveMetadata!]! 
+    getMoveMetadataUsingId(id: Int!): MoveMetadata
+    getLifts: [Lift!]!
 }
 
-type CreateMoveMetadataResponse {
+interface BaseResponse {
+    code: Int!
+    success: Boolean!
+    message: String!
+}
+
+type CreateMoveMetadataResponse implements BaseResponse{
     code: Int!
     success: Boolean!
     message: String!
@@ -55,7 +63,20 @@ input CreateMoveMetadataInput {
     target_muscle: String!
 }
 
+type CreateLiftResponse implements BaseResponse {
+    code: Int!
+    success: Boolean!
+    message: String!
+    lift: Lift
+}
+
+input CreateLiftInput {
+    date: Date
+    target_type: TargetType!
+}
+
 type Mutation {
     "Create a new move"
     createMoveMetadata(input: CreateMoveMetadataInput!): CreateMoveMetadataResponse!
+    createLift(input: CreateLiftInput!): CreateLiftResponse!
 }
