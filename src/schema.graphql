@@ -16,6 +16,7 @@ type Lift {
     id: ID!
     date: Date!
     target_type: TargetType!
+    moves: [MoveMetadata!]!
 }
 
 type Move {
@@ -43,6 +44,7 @@ type Query {
     getMoveMetadata: [MoveMetadata!]! 
     getMoveMetadataUsingId(id: Int!): MoveMetadata
     getLifts: [Lift!]!
+    getLiftUsingId(id: Int!): Lift
 }
 
 interface BaseResponse {
@@ -75,8 +77,20 @@ input CreateLiftInput {
     target_type: TargetType!
 }
 
+input AddMoveToLiftInput {
+    lift_id: ID! 
+    move_metadata_id: ID!
+}
+
+type AddMoveToLiftResponse implements BaseResponse {
+    code: Int!
+    success: Boolean!
+    message: String!
+}
+
 type Mutation {
     "Create a new move"
     createMoveMetadata(input: CreateMoveMetadataInput!): CreateMoveMetadataResponse!
     createLift(input: CreateLiftInput!): CreateLiftResponse!
+    addMoveToLift(input: AddMoveToLiftInput!): AddMoveToLiftResponse!
 }

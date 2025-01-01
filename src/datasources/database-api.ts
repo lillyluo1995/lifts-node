@@ -1,5 +1,5 @@
 import { Pool } from 'pg';
-import { CreateMoveMetadataResponse, CreateMoveMetadataInput, MoveMetadata, TargetType, Lift } from "../types";
+import { Move, CreateMoveMetadataResponse, CreateMoveMetadataInput, MoveMetadata, TargetType, Lift } from "../types";
 
 export class DatabaseAPI {
     private pool: Pool
@@ -52,5 +52,28 @@ export class DatabaseAPI {
     async getLifts(): Promise<Lift[]> {
         const response = await this.pool.query<Lift>(`SELECT * FROM LIFT`)
         return response.rows
+    }
+
+    async getLiftUsingId(id: number): Promise<Lift | null> {
+        const response = await this.pool.query<Lift>(`SELECT * FROM LIFT WHERE ID = ${id}`)
+        if (response.rowCount == 0) {
+            return null
+        }
+        return response.rows[0]
+    }
+
+    async getMoveMetadataForLiftId(liftId: string): Promise<MoveMetadata[]> {
+        const response = await this.pool.query<MoveMetadata>(
+        `
+            SELECT MOVE_METADATA.* FROM MOVE 
+            INNER JOIN MOVE_METADATA
+            ON MOVE.MOVE_METADATA_ID = MOVE_METADATA.ID
+            WHERE LIFT_ID = ${liftId}
+        `)
+        return response.rows
+    }
+
+    async addMoveToLift(input: { moveMetadataId: string, liftId: string}): Promise<void> {
+        await this.pool.query(`INSERT INTO MOVE (move_metadata_id, lift_id) values ($1, $2)`, [ input.moveMetadataId, input.liftId])
     }
 }

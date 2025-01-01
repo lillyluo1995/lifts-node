@@ -18,6 +18,17 @@ export const resolvers: Resolvers = {
 
         getLifts: (_, __, { dataSources}) => {
             return dataSources.db.getLifts()
+        },
+
+        getLiftUsingId: (_, {id }, { dataSources}) => {
+            return dataSources.db.getLiftUsingId(id)
+        }
+    },
+    Lift: {
+        // TODO: did i design the DB poorly? i have to make another db call to get the move metadata? 
+        // maybe better to stick the move ids onto the lift? 
+        moves: ({id: liftId }, _, { dataSources}) => {
+            return dataSources.db.getMoveMetadataForLiftId(liftId)
         }
     },
     // Listing is from the type definition of Listing 
@@ -75,8 +86,25 @@ export const resolvers: Resolvers = {
                 return { 
                     success: false,
                     code: 500,
-                    message: `Failed to create lift ${error.message}`,
+                    message: `Something went wrong ${error.message}`,
                     lift: null
+                }
+            }
+        },
+        addMoveToLift: async(_, { input}, {dataSources}) => {
+            const {move_metadata_id: moveMetadataId, lift_id: liftId} = input 
+            try {
+                await dataSources.db.addMoveToLift({moveMetadataId, liftId})
+                return {
+                    code: 200,
+                    success: true,
+                    message: `Successfully added move to lift`
+                }
+            } catch (error) {
+                return {
+                    code: 500,
+                    success: false, 
+                    message: `Failed to add move to lift ${error.message}`
                 }
             }
         }

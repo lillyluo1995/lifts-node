@@ -1,4 +1,4 @@
-import { ApolloServer } from "@apollo/server";
+import { ApolloServer, BaseContext } from "@apollo/server";
 import {startStandaloneServer } from "@apollo/server/standalone";
 import { readFileSync } from "fs";
 import path from "path";
@@ -13,7 +13,7 @@ const typeDefs = gql(
 )
 
 async function startApolloServer() {
-    const server = new ApolloServer({ typeDefs, resolvers });
+    const server = new ApolloServer<BaseContext>({ typeDefs, resolvers });
     const { url } = await startStandaloneServer(server, {
         context: async() => {
             return {
