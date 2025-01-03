@@ -25,11 +25,15 @@ type Move {
     lift_id: ID!
 }
 
-type Set {
+type LiftSet {
     id: ID!
-    move_id: ID!
+    move_metadata_id: ID!
     lift_id: ID!
-    set_increment: Int!
+    set_count: Int!
+    num_reps: Int!
+    weight_lbs: Int!
+    unilateral: Boolean!
+    move_metadata: MoveMetadata!
 }
 
 type Rep {
@@ -42,9 +46,10 @@ type Rep {
 
 type Query {
     getMoveMetadata: [MoveMetadata!]! 
-    getMoveMetadataUsingId(id: Int!): MoveMetadata
+    getMoveMetadataUsingId(id: String!): MoveMetadata
     getLifts: [Lift!]!
     getLiftUsingId(id: Int!): Lift
+    getSetsForLiftAndMove(liftId: String!, moveMetadataId: String!): [LiftSet!]!
 }
 
 interface BaseResponse {
@@ -88,9 +93,25 @@ type AddMoveToLiftResponse implements BaseResponse {
     message: String!
 }
 
+input AddSetForMoveInput {
+    lift_id: ID!
+    move_metadata_id: ID!
+    num_reps: Int!
+    weight_lbs: Int!
+    unilateral: Boolean!
+}
+
+type AddSetForMoveResponse implements BaseResponse {
+    code: Int!
+    success: Boolean!
+    message: String!
+    set: LiftSet 
+}
+
 type Mutation {
     "Create a new move"
     createMoveMetadata(input: CreateMoveMetadataInput!): CreateMoveMetadataResponse!
     createLift(input: CreateLiftInput!): CreateLiftResponse!
     addMoveToLift(input: AddMoveToLiftInput!): AddMoveToLiftResponse!
+    addSetForMove(input: AddSetForMoveInput!): AddSetForMoveResponse
 }

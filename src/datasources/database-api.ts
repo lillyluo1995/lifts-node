@@ -1,5 +1,5 @@
 import { Pool } from 'pg';
-import { Move, CreateMoveMetadataResponse, CreateMoveMetadataInput, MoveMetadata, TargetType, Lift } from "../types";
+import { Move, CreateMoveMetadataResponse, CreateMoveMetadataInput, MoveMetadata, TargetType, Lift, LiftSet } from "../types";
 
 export class DatabaseAPI {
     private pool: Pool
@@ -20,7 +20,7 @@ export class DatabaseAPI {
         return results.rows;
     }
 
-    async getMoveUsingId(id: number): Promise<MoveMetadata | null> {
+    async getMoveUsingId(id: string): Promise<MoveMetadata | null> {
         const results = await this.pool.query<MoveMetadata>(`SELECT * FROM MOVE_METADATA WHERE ID = ${id}`)
         if (results.rowCount == 0) {
             return null
@@ -75,5 +75,49 @@ export class DatabaseAPI {
 
     async addMoveToLift(input: { moveMetadataId: string, liftId: string}): Promise<void> {
         await this.pool.query(`INSERT INTO MOVE (move_metadata_id, lift_id) values ($1, $2)`, [ input.moveMetadataId, input.liftId])
+    }
+
+    async addSetOfMoveForLift(input: { moveMetadataId: string, liftId: string}): Promise<LiftSet> {
+
+        const client = await this.pool.connect();
+
+        await client.query("BEGIN");
+
+        const lastSetResponse = await client.query<LiftSet>(`
+            SELECT *
+            FROM SET 
+            WHERE LIFT_ID = ${input.liftId} AND MOVE_METADATA_ID = ${input.moveMetadataId}
+            ORDER BY SET_INCREMENT DESC
+            LIMIT 1    
+        `)
+        const lastSet = lastSetResponse.rows?.[0] ?? null 
+
+        const newSetIncrement = lastSet ? lastSet.set_count + 1 : 1
+
+        const response = await this.pool.query(`
+            INSERT INTO SET 
+            (move_metadata_id, lift_id, set_increment)
+            VALUES ($1, $2, $3) 
+            RETURNING *
+            `, 
+            [
+                input.moveMetadataId, 
+                input.liftId, 
+                newSetIncrement
+            ]
+        )
+        
+        const newSet = response.rows[0]
+        await client.query("COMMIT")
+        return newSet
+    }
+
+    async getSetsForLiftIdAndMoveMetadataId(input: { liftId: string, moveMetadataId: string}): Promise<LiftSet[]> {
+        const response = await this.pool.query<LiftSet>(`
+            SELECT *
+            FROM SET 
+            WHERE LIFT_ID=${input.liftId} AND MOVE_METADATA_ID=${input.moveMetadataId}
+            `)
+        return response.rows
     }
 }

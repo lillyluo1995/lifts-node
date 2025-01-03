@@ -1,4 +1,5 @@
 import { Resolvers} from "./types";
+import { LiftResolver } from "./resolvers/liftResolver";
 
 export const resolvers: Resolvers = {
     Query: {
@@ -22,13 +23,22 @@ export const resolvers: Resolvers = {
 
         getLiftUsingId: (_, {id }, { dataSources}) => {
             return dataSources.db.getLiftUsingId(id)
+        },
+
+        getSetsForLiftAndMove: (_, { liftId, moveMetadataId}) => {
+            const liftResolver = new LiftResolver(liftId)
+            return liftResolver.getSetsForMove(moveMetadataId)
         }
+
     },
     Lift: {
-        // TODO: did i design the DB poorly? i have to make another db call to get the move metadata? 
-        // maybe better to stick the move ids onto the lift? 
         moves: ({id: liftId }, _, { dataSources}) => {
             return dataSources.db.getMoveMetadataForLiftId(liftId)
+        }
+    },
+    LiftSet: {
+        move_metadata: ({move_metadata_id}, _, { dataSources}) => {
+            return dataSources.db.getMoveUsingId(move_metadata_id)
         }
     },
     // Listing is from the type definition of Listing 
@@ -69,13 +79,8 @@ export const resolvers: Resolvers = {
         }
         },
         createLift: async(_, { input }, {dataSources}) => {
-            let { date, target_type } = input 
-            if (!date) {
-                date = new Date()
-            }
-
             try {
-                const lift = await dataSources.db.createLift({date, target_type})
+                const lift = await LiftResolver.createLift(input)
                 return {
                     success: true,
                     code: 200,
@@ -92,19 +97,37 @@ export const resolvers: Resolvers = {
             }
         },
         addMoveToLift: async(_, { input}, {dataSources}) => {
-            const {move_metadata_id: moveMetadataId, lift_id: liftId} = input 
+            const liftResolver = new LiftResolver(input.lift_id)
             try {
-                await dataSources.db.addMoveToLift({moveMetadataId, liftId})
+                await liftResolver.addMoveToLift(input.move_metadata_id)
                 return {
                     code: 200,
                     success: true,
-                    message: `Successfully added move to lift`
+                    message: `Successfully added move to lift and created set`
                 }
             } catch (error) {
                 return {
                     code: 500,
                     success: false, 
                     message: `Failed to add move to lift ${error.message}`
+                }
+            }
+        },
+        addSetForMove: async(_, { input }, { dataSources}) => {
+            const liftResolver = new LiftResolver(input.lift_id)
+            try {
+                const newSet = await liftResolver.addSetForMove(input)
+                return { 
+                    success: true,
+                    code: 200,
+                    message: `Successfully added set ${newSet.set_count}`,
+                    set: newSet
+                }
+            } catch (error) {
+                return {
+                    success: false, 
+                    code: 500,
+                    message: `Failed to add set with error ${error.message}`
                 }
             }
         }
