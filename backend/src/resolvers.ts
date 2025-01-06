@@ -39,7 +39,7 @@ export const resolvers: Resolvers = {
     LiftSet: {
         move_metadata: ({move_metadata_id}, _, { dataSources}) => {
             return dataSources.db.getMoveUsingId(move_metadata_id)
-        }
+        },
     },
     // Listing is from the type definition of Listing 
     // It comes from export type Listing

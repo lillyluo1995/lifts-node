@@ -1,5 +1,5 @@
 import { Pool } from 'pg';
-import { Move, CreateMoveMetadataResponse, CreateMoveMetadataInput, MoveMetadata, TargetType, Lift, LiftSet } from "../types";
+import { CreateMoveMetadataInput, MoveMetadata, TargetType, Lift, LiftSet } from "../types";
 
 export class DatabaseAPI {
     private pool: Pool

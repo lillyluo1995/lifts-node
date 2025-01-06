@@ -5,6 +5,7 @@ import path from "path";
 import { gql } from "graphql-tag";
 import { resolvers } from "./resolvers";
 import { DatabaseAPI } from "./datasources/database-api";
+import {mockResolvers} from "./mockResolvers";
 
 const typeDefs = gql(
     readFileSync(path.resolve(__dirname, "./schema.graphql"), {
@@ -13,7 +14,7 @@ const typeDefs = gql(
 )
 
 async function startApolloServer() {
-    const server = new ApolloServer<BaseContext>({ typeDefs, resolvers });
+    const server = new ApolloServer<BaseContext>({ typeDefs, resolvers: mockResolvers });
     const { url } = await startStandaloneServer(server, {
         context: async() => {
             return {

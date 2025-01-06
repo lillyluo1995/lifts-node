@@ -16,13 +16,12 @@ type Lift {
     id: ID!
     date: Date!
     target_type: TargetType!
-    moves: [MoveMetadata!]!
+    moves: [LiftMove!]!
 }
 
-type Move {
-    id: ID!
-    move_metadata_id: ID!
-    lift_id: ID!
+type LiftMove {
+    move_metadata: MoveMetadata!
+    sets: [LiftSet!]!
 }
 
 type LiftSet {
