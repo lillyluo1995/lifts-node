@@ -14,7 +14,7 @@ const typeDefs = gql(
 )
 
 async function startApolloServer() {
-    const server = new ApolloServer<BaseContext>({ typeDefs, resolvers: mockResolvers });
+    const server = new ApolloServer<BaseContext>({ typeDefs, resolvers });
     const { url } = await startStandaloneServer(server, {
         context: async() => {
             return {

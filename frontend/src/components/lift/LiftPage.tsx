@@ -3,27 +3,35 @@ import { useParams } from 'react-router-dom';
 import {gql, useQuery} from "@apollo/client";
 
 const GET_LIFT_USING_ID = gql`
-    query GetLiftUsingId($getLiftUsingIdId: Int!) {
-      getLiftUsingId(id: $getLiftUsingIdId) {
+    query GetLiftUsingId($id: Int!) {
+      getLiftUsingId(id: $id) {
         date
         id 
         target_type
         moves {
-            name
-            target_muscle
+            move_metadata {
+                name 
+                target_muscle
+            }
+            sets {
+                set_count
+                num_reps
+                weight_lbs
+                unilateral
+            }
         }
       }
     }
 `
 
-export const LiftPage: React.FC<unknown> = (): ReactElement => {
+export const LiftPage: React.FC = (): ReactElement => {
     const { id } = useParams()
-    const { loading, error, data } = useQuery<{ getLiftUsingId: { date: Date, id: string, target_type: string, moves: { name: string, target_muscle: string}[]} }, { id: number }>(GET_LIFT_USING_ID, { variables: { id: parseInt(id ?? "1" ) }});
+    const { loading, error, data } = useQuery(GET_LIFT_USING_ID, {  variables: { id: id ? parseInt(id) : "2" }});
     if (loading) return <div>Loading...</div>
     if (error) return <div>Error! {error.message}</div>
-    return <div>
-        Date: {data?.getLiftUsingId.date?.toString()}<br/>
-        Target Type: {data?.getLiftUsingId.target_type}<br/>
+    return (<div>
+      <div>Date: {data?.getLiftUsingId.date?.toString()}</div>
+      <div>Target Type: {data?.getLiftUsingId.target_type}</div>
         <table>
             <thead>
                 <tr>
@@ -35,12 +43,12 @@ export const LiftPage: React.FC<unknown> = (): ReactElement => {
             <tbody>
             {data?.getLiftUsingId.moves.map((move) => (
                 <tr key={move.name}>
-                    <td>{move.name}</td>
-                    <td>{move.}</td>
+                    <td>{move.move_metadata.name}</td>
                     <td>3x5</td>
                 </tr>
             ))}
             </tbody>
         </table>
     </div>
+    )
 }

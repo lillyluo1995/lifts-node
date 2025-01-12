@@ -32,8 +32,20 @@ export const resolvers: Resolvers = {
 
     },
     Lift: {
-        moves: ({id: liftId }, _, { dataSources}) => {
-            return dataSources.db.getMoveMetadataForLiftId(liftId)
+        moves: async ({id: liftId }, _, { dataSources}) => {
+            const moveMetadata = await dataSources.db.getMoveMetadataForLiftId(liftId)
+            return moveMetadata.map((moveMetadatum) => ({
+                lift_id: liftId,
+                move_metadata_id: moveMetadatum.id
+            }))
+        }
+    },
+    LiftMove: {
+        sets: async (parent: { lift_id: string, move_metadata_id: string }, _, { dataSources}) => {
+            return dataSources.db.getSetsForLiftIdAndMoveMetadataId({liftId: parent.lift_id, moveMetadataId: parent.move_metadata_id})
+        },
+        move_metadata: async(parent: { move_metadata_id: string}, _, {dataSources}) => {
+            return dataSources.db.getMoveUsingId(parent.move_metadata_id)
         }
     },
     LiftSet: {

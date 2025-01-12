@@ -1,4 +1,4 @@
-import { AddSetForMoveInput, Lift, TargetType, LiftSet } from '../types'
+import { AddSetForMoveInput, Lift, TargetType, LiftSet, LiftMove } from '../types'
 import { DatabaseAPI } from '../datasources/database-api'
 
 export class LiftResolver {
@@ -33,4 +33,15 @@ export class LiftResolver {
         return await this.dataSources.getSetsForLiftIdAndMoveMetadataId({liftId: this.liftId, moveMetadataId: move_metadata_id})
     }
 
+    public async getMovesForLift(): Promise<LiftMove[]> {
+        const liftMoves: LiftMove[] = []
+        const moveMetadata = await this.dataSources.getMoveMetadataForLiftId(this.liftId)
+        for (const moveMetadatum of moveMetadata) {
+            const sets = await this.dataSources.getSetsForLiftIdAndMoveMetadataId({liftId: this.liftId, moveMetadataId: moveMetadatum.id})
+            liftMoves.push({
+                move_metadata: moveMetadatum, sets, lift_id: this.liftId, move_metadata_id: moveMetadatum.id
+            })
+        }
+        return liftMoves
+    }
 }

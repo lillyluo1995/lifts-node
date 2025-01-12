@@ -20,8 +20,10 @@ type Lift {
 }
 
 type LiftMove {
-    move_metadata: MoveMetadata!
-    sets: [LiftSet!]!
+    lift_id: ID!
+    move_metadata_id: ID!
+    move_metadata: MoveMetadata
+    sets: [LiftSet!]
 }
 
 type LiftSet {
