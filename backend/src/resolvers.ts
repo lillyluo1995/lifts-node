@@ -33,11 +33,8 @@ export const resolvers: Resolvers = {
     },
     Lift: {
         moves: async ({id: liftId }, _, { dataSources}) => {
-            const moveMetadata = await dataSources.db.getMoveMetadataForLiftId(liftId)
-            return moveMetadata.map((moveMetadatum) => ({
-                lift_id: liftId,
-                move_metadata_id: moveMetadatum.id
-            }))
+            const liftResolver = new LiftResolver(liftId)
+            return liftResolver.getMovesForLift()
         }
     },
     LiftMove: {

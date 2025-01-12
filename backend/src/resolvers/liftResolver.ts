@@ -34,14 +34,10 @@ export class LiftResolver {
     }
 
     public async getMovesForLift(): Promise<LiftMove[]> {
-        const liftMoves: LiftMove[] = []
         const moveMetadata = await this.dataSources.getMoveMetadataForLiftId(this.liftId)
-        for (const moveMetadatum of moveMetadata) {
-            const sets = await this.dataSources.getSetsForLiftIdAndMoveMetadataId({liftId: this.liftId, moveMetadataId: moveMetadatum.id})
-            liftMoves.push({
-                move_metadata: moveMetadatum, sets, lift_id: this.liftId, move_metadata_id: moveMetadatum.id
-            })
-        }
-        return liftMoves
+            return moveMetadata.map((moveMetadatum) => ({
+                lift_id: this.liftId,
+                move_metadata_id: moveMetadatum.id
+            }))
     }
 }
