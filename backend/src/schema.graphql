@@ -22,8 +22,8 @@ type Lift {
 type LiftMove {
     lift_id: ID!
     move_metadata_id: ID!
-    move_metadata: MoveMetadata
-    sets: [LiftSet!]
+    move_metadata: MoveMetadata # make optional to only fetch as needed
+    sets: [LiftSet!] # make optional to only fetch as needed
 }
 
 type LiftSet {
