@@ -50,5 +50,5 @@ export default tseslint.config({
 ```
 
 TODO: 
-1. add a separate page for each specific lift 
+1. Finish add set to lift functionality
 2. codegen on the frontend too for type protection? 
